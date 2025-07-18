@@ -4,7 +4,75 @@
 
 Ansible is a tool for configuration management, application deployment, orchestration, and many other things. It uses a declarative language to describe the desired state of the system.
 
-## Architecture
+## Ansible General Architecture
+
+```mermaid
+graph TB
+    subgraph "Control Node"
+        AC[🎛️ Ansible Control<br/>- Ansible Engine<br/>- Playbooks<br/>- Inventory Files<br/>- SSH Keys]
+        INV[📋 Inventory<br/>hosts.yml<br/>- Groups<br/>- Variables<br/>- Host Lists]
+        PB[📜 Playbooks<br/>playbook.yml<br/>- Tasks<br/>- Handlers<br/>- Variables]
+        MOD[🔧 Modules<br/>- apt/yum<br/>- file/copy<br/>- service<br/>- shell/command]
+    end
+    
+    subgraph "Managed Nodes"
+        direction TB
+        subgraph "Web Servers"
+            WS1[🌐 Web Server 1<br/>- Python<br/>- SSH Access]
+            WS2[🌐 Web Server 2<br/>- Python<br/>- SSH Access]
+        end
+        
+        subgraph "Database Servers"
+            DB1[🗄️ Database 1<br/>- Python<br/>- SSH Access]
+            DB2[🗄️ Database 2<br/>- Python<br/>- SSH Access]
+        end
+        
+        subgraph "Application Servers"
+            APP1[⚙️ App Server 1<br/>- Python<br/>- SSH Access]
+            APP2[⚙️ App Server 2<br/>- Python<br/>- SSH Access]
+        end
+    end
+    
+    %% Control Node Internal Connections
+    AC --> INV
+    AC --> PB
+    AC --> MOD
+    
+    %% SSH Connections to Managed Nodes
+    AC ---|SSH| WS1
+    AC ---|SSH| WS2
+    AC ---|SSH| DB1
+    AC ---|SSH| DB2
+    AC ---|SSH| APP1
+    AC ---|SSH| APP2
+    
+    %% Module execution flow
+    MOD -.->|Executes on| WS1
+    MOD -.->|Executes on| WS2
+    MOD -.->|Executes on| DB1
+    MOD -.->|Executes on| DB2
+    MOD -.->|Executes on| APP1
+    MOD -.->|Executes on| APP2
+    
+    %% Styling
+    classDef controlNode fill:#e1f5fe,stroke:#01579b,stroke-width:3px
+    classDef inventory fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef playbook fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
+    classDef module fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef webServer fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    classDef dbServer fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef appServer fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    
+    class AC controlNode
+    class INV inventory
+    class PB playbook
+    class MOD module
+    class WS1,WS2 webServer
+    class DB1,DB2 dbServer
+    class APP1,APP2 appServer
+```
+
+## Lab Architecture
 
 ```mermaid
 graph TB
