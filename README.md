@@ -211,7 +211,7 @@ brew install multipass
 
 # target nodes
 # Create target nodes (your Mac will be the control node)
-multipass launch --name web-server --cpus 1 --memory 1G --disk 50G
+multipass launch --name web-server --cpus 1 --memory 1G --disk 5G
 multipass launch --name db-server --cpus 1 --memory 1G --disk 5G
 multipass launch --name app-server --cpus 1 --memory 1G --disk 5G
 
@@ -299,13 +299,13 @@ curl http://<WEB_SERVER_IP>
 curl http://10.211.55.24
 
 ## check DB
-ssh ubuntu@10.211.55.25 "mysql -u webapp_user -pWebAppPassword123! -e 'SHOW DATABASES;'"
+ssh ubuntu@10.211.55.28 "mysql -u webapp_user -pWebAppPassword123! -e 'SHOW DATABASES;'"
 ansible databases -m shell -a "systemctl status mysql"
 ssh ubuntu@10.211.55.22 "mysql -u root -pSecurePassword123! -e 'SHOW DATABASES;'"
 
 ## check app 
 ansible appservers -m shell -a "cd /opt/myapp && sudo -u appuser nohup node app.js > app.log 2>&1 &" --become
-curl http://10.211.55.26:3000
+curl http://10.211.55.29:3000
 
 # check if services are running
 ansible all -m shell -a "systemctl status nginx" --limit webservers

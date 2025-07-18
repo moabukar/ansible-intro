@@ -3,15 +3,15 @@ all:
     webservers:
       hosts:
         web-server:
-          ansible_host: 10.211.55.24
+          ansible_host: 10.211.55.27
     databases:
       hosts:
         db-server:
-          ansible_host: 10.211.55.25
+          ansible_host: 10.211.55.28
     appservers:
       hosts:
         app-server:
-          ansible_host: 10.211.55.26
+          ansible_host: 10.211.55.29
   vars:
     ansible_user: ubuntu
     ansible_ssh_private_key_file: ~/.ssh/id_rsa
