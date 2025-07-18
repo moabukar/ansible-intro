@@ -41,7 +41,6 @@ multipass transfer ~/.ssh/id_rsa.pub db-server:/home/ubuntu/.ssh/authorized_keys
 
 multipass exec web-server -- bash -c 'mkdir -p /home/ubuntu/.ssh && chmod 700 /home/ubuntu/.ssh'
 multipass transfer ~/.ssh/id_rsa.pub web-server:/home/ubuntu/.ssh/authorized_keys
-
 ```
 
 ## Testing
@@ -105,6 +104,7 @@ ansible-playbook site.yml
 ```bash
 # Check web server
 curl http://<WEB_SERVER_IP>
+curl http://10.211.55.24
 
 ## check DB
 ssh ubuntu@10.211.55.22 "mysql -u webapp_user -pWebAppPassword123! -e 'SHOW DATABASES;'"
