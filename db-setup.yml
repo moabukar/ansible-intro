@@ -1,0 +1,47 @@
+---
+- name: Setup Database Server
+  hosts: databases
+  become: yes
+  vars:
+    mysql_root_password: "SecurePassword123!"
+    mysql_database: "webapp_db"
+    mysql_user: "webapp_user"
+    mysql_password: "WebAppPassword123!"
+  
+  tasks:
+    - name: Install MySQL
+      apt:
+        name:
+          - mysql-server
+          - python3-pymysql
+        state: present
+        update_cache: yes
+    
+    - name: Start and enable MySQL
+      systemd:
+        name: mysql
+        state: started
+        enabled: yes
+    
+    - name: Set MySQL root password
+      mysql_user:
+        name: root
+        password: "{{ mysql_root_password }}"
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+        state: present
+    
+    - name: Create application database
+      mysql_db:
+        name: "{{ mysql_database }}"
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        state: present
+    
+    - name: Create application user
+      mysql_user:
+        name: "{{ mysql_user }}"
+        password: "{{ mysql_password }}"
+        priv: "{{ mysql_database }}.*:ALL"
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        state: present

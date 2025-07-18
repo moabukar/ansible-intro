@@ -1,0 +1,25 @@
+---
+- import_playbook: web-setup.yml
+- import_playbook: db-setup.yml
+- import_playbook: app-setup.yml
+
+- name: Final Configuration
+  hosts: all
+  become: yes
+  tasks:
+    - name: Ensure all services are running
+      systemd:
+        name: "{{ item }}"
+        state: started
+        enabled: yes
+      loop:
+        - ssh
+      when: ansible_service_mgr == "systemd"
+    
+    - name: Display server information
+      debug:
+        msg: |
+          Server: {{ inventory_hostname }}
+          IP: {{ ansible_default_ipv4.address }}
+          OS: {{ ansible_distribution }} {{ ansible_distribution_version }}
+          Memory: {{ ansible_memtotal_mb }}MB

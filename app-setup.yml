@@ -1,0 +1,82 @@
+---
+- name: Setup Application Server
+  hosts: appservers
+  become: yes
+  vars:
+    app_user: "appuser"
+    app_directory: "/opt/myapp"
+  
+  tasks:
+    - name: Install Node.js and npm
+      apt:
+        name:
+          - nodejs
+          - npm
+          - git
+        state: present
+        update_cache: yes
+    
+    - name: Create application user
+      user:
+        name: "{{ app_user }}"
+        system: yes
+        shell: /bin/bash
+        home: "{{ app_directory }}"
+        create_home: yes
+    
+    - name: Create application directory
+      file:
+        path: "{{ app_directory }}"
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: '0755'
+    
+    - name: Create sample app
+      copy:
+        content: |
+          const express = require('express');
+          const app = express();
+          const port = 3000;
+          
+          app.get('/', (req, res) => {
+            res.json({
+              message: 'Hello from {{ inventory_hostname }}!',
+              timestamp: new Date().toISOString(),
+              server: '{{ ansible_default_ipv4.address }}'
+            });
+          });
+          
+          app.listen(port, () => {
+            console.log(`App listening at http://localhost:${port}`);
+          });
+        dest: "{{ app_directory }}/app.js"
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: '0644'
+    
+    - name: Create package.json
+      copy:
+        content: |
+          {
+            "name": "ansible-lab-app",
+            "version": "1.0.0",
+            "description": "Sample app for Ansible lab",
+            "main": "app.js",
+            "scripts": {
+              "start": "node app.js"
+            },
+            "dependencies": {
+              "express": "^4.18.0"
+            }
+          }
+        dest: "{{ app_directory }}/package.json"
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: '0644'
+    
+    - name: Install Node.js dependencies
+      npm:
+        path: "{{ app_directory }}"
+        state: present
+      become_user: "{{ app_user }}"
