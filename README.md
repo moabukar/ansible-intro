@@ -25,22 +25,18 @@ multipass launch --name app-server --cpus 1 --memory 1G --disk 5G
 
 multipass list
 
-multipass shell ansible-control
-
-sudo apt update
-sudo apt install -y ansible python3-pip
-
-ssh-keygen -t rsa -b 4096 -C "ansible@lab" -f ~/.ssh/id_rsa -N ""
-
 # Get the public key
 cat ~/.ssh/id_rsa.pub
 
-# For each target node, run:
-ssh-copy-id ubuntu@<TARGET_IP>
-# Example: ssh-copy-id ubuntu@192.168.64.4
+#### Transfer the public key to the target nodes ####
+multipass exec app-server -- bash -c 'mkdir -p /home/ubuntu/.ssh && chmod 700 /home/ubuntu/.ssh'
+multipass transfer ~/.ssh/id_rsa.pub app-server:/home/ubuntu/.ssh/authorized_keys
 
-# Or if ssh-copy-id doesn't work on Mac:
-ssh ubuntu@<TARGET_IP> 'mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys' < ~/.ssh/id_rsa.pub
+multipass exec db-server -- bash -c 'mkdir -p /home/ubuntu/.ssh && chmod 700 /home/ubuntu/.ssh'
+multipass transfer ~/.ssh/id_rsa.pub db-server:/home/ubuntu/.ssh/authorized_keys
+
+multipass exec web-server -- bash -c 'mkdir -p /home/ubuntu/.ssh && chmod 700 /home/ubuntu/.ssh'
+multipass transfer ~/.ssh/id_rsa.pub web-server:/home/ubuntu/.ssh/authorized_keys
 
 ```
 
@@ -63,6 +59,9 @@ ansible all -m setup
 # Get specific facts
 ansible all -m setup -a "filter=ansible_os_family"
 
+# Get uptime
+ansible all -m shell -a "uptime"
+
 #### Ad-hoc commands ####
 
 # Check disk space
@@ -76,6 +75,11 @@ ansible all -m apt -a "name=htop state=present" --become
 
 # Create a user
 ansible all -m user -a "name=testuser state=present" --become
+
+### test targeting specific groups
+ansible webservers -m shell -a "echo 'This is the web server'"
+ansible databases -m shell -a "echo 'This is the database server'"  
+ansible appservers -m shell -a "echo 'This is the app server'"
 ```
 
 ### Individual playbooks
@@ -97,6 +101,17 @@ ansible-playbook site.yml
 ```bash
 # Check web server
 curl http://<WEB_SERVER_IP>
+
+## check DB
+ssh ubuntu@10.211.55.22 "mysql -u webapp_user -pWebAppPassword123! -e 'SHOW DATABASES;'"
+ansible databases -m shell -a "systemctl status mysql"
+ssh ubuntu@10.211.55.22 "mysql -u root -pSecurePassword123! -e 'SHOW DATABASES;'"
+
+## check app 
+ansible appservers -m shell -a "cd /opt/myapp && sudo -u appuser nohup node app.js > app.log 2>&1 &" --become
+curl http://10.211.55.23:3000
+
+
 
 # Check if services are running
 ansible all -m shell -a "systemctl status nginx" --limit webservers

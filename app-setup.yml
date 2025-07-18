@@ -1,5 +1,5 @@
 ---
-- name: Setup Application Server
+- name: Setup Application Server (Fixed)
   hosts: appservers
   become: yes
   vars:
@@ -76,7 +76,10 @@
         mode: '0644'
     
     - name: Install Node.js dependencies
-      npm:
-        path: "{{ app_directory }}"
-        state: present
-      become_user: "{{ app_user }}"
+      shell: |
+        cd {{ app_directory }}
+        npm install
+        chown -R {{ app_user }}:{{ app_user }} node_modules package-lock.json
+      args:
+        chdir: "{{ app_directory }}"
+        creates: "{{ app_directory }}/node_modules"
