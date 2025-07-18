@@ -25,6 +25,10 @@ multipass launch --name app-server --cpus 1 --memory 1G --disk 5G
 
 multipass list
 
+#### SSH key setup
+sh ssh-setup.sh
+##################
+
 # Get the public key
 cat ~/.ssh/id_rsa.pub
 
